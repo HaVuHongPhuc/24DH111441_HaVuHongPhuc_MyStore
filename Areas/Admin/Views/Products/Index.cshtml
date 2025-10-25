@@ -1,0 +1,36 @@
+﻿@model MyStore.Models.ViewModel.ProductSearchVM
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Search</title>
+    <style>
+        img {
+            height: 200px;
+            max-width: 200px;
+        }
+    </style>
+</head>
+<body>
+    @*Form tìm kiếm sản phẩm*@
+    @using (Html.BeginForm("Index", "Products", FormMethod.Get))
+    {
+        <div class="form-group search-container">
+            @Html.TextBoxFor(m => m.SearchTerm, new
+            {
+                @class = "form-control",
+                placeholder = "Nhập tên, mô tả hoạc chủng loại sản phẩm..."
+            })
+            <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+        </div>
+    }
+    @*Form kết quả tìm kiếm sản phẩm*@
+    @Html.Partial("PVListProduct", Model)
+</body>
+
+</html>
+
