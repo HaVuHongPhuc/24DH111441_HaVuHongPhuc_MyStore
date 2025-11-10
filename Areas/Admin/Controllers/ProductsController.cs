@@ -7,16 +7,17 @@ using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using MyStore.Models;
-using MyStore.Models.ViewModel ;
+using MyStore.Models.ViewModel;
+using PagedList;
 
 namespace MyStore.Areas.Admin
 {
-    public class ProductsController : Controller
+     public class ProductsController : Controller
     {
         private MyStoreEntities db = new MyStoreEntities();
 
         // GET: Admin/Products
-        public ActionResult Index(string searchTerm)
+        public ActionResult Index(string searchTerm, decimal? minPrice, decimal? maxPrice, string sortOrder, int? page)
         {
             var model = new ProductSearchVM();
             var products = db.Products.AsQueryable();
@@ -24,15 +25,41 @@ namespace MyStore.Areas.Admin
             {   //Tìm kiếm sản phẩm dựa trên từ khóa
                 products = products.Where(p => p.ProductName.Contains(searchTerm) | p.ProductDescription.Contains(searchTerm) | p.Category.CategoryName.Contains(searchTerm));
             }
-            model.Products = products.ToList();
+            //Tìm kiếm sản phẩm dựa trên giá tối thiểu
+            if(minPrice.HasValue)
+            {
+                products = products.Where (p => p.ProductPrice >= minPrice.Value);
+            }
+            //Tìm kiếm san phẩm dựa trên giá tối đa
+            if(maxPrice.HasValue)
+            {
+                products = products.Where (p => p.ProductPrice <= maxPrice.Value);
+            }
+
+            //Áp dụng dựa trên lựa chọn của ng dùng:
+            switch (sortOrder)
+            {
+                case "name_asc": products = products.OrderBy(p => p.ProductName);
+                    break;
+                case "name_desc": products = products.OrderByDescending(p => p.ProductName);
+                    break;
+                case "price_asc": products = products.OrderBy(p => p.ProductPrice);
+                    break;
+                case "price_desc": products = products.OrderByDescending(p => p.ProductPrice);
+                    break;
+                default: //Mặc định sắp xếp theo tên
+                    products = products.OrderBy(p => p.ProductName);
+                    break;
+            }
+            model.SortOrder = sortOrder;
+
+            //Đoạn code liên quan tới phân trang
+            //Lấy số trang hiện tại (mặc định là trang 1 nếu không có giá trị)
+            int pageNumber = page ?? 1;
+            int pageSize = 2; //Số sản phẩm mỗi trang
+            model.Products = products.ToPagedList(pageNumber, pageSize);
             return View(model);
         }
-        public ActionResult Index()
-        {
-            var products = db.Products.Include(p => p.Category);
-            return View(products.ToList());
-        }
-
         // GET: Admin/Products/Details/5
         public ActionResult Details(int? id)
         {
@@ -64,9 +91,25 @@ namespace MyStore.Areas.Admin
         {
             if (ModelState.IsValid)
             {
-                db.Products.Add(product);
-                db.SaveChanges();
-                return RedirectToAction("Index");
+                try
+                {
+                    db.Products.Add(product);
+                    db.SaveChanges();
+                    return RedirectToAction("Index");
+                }
+                catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+                {
+                    // Bắt lỗi validation của Entity Framework và lấy chi tiết
+                    var errorMessages = dbEx.EntityValidationErrors
+                        .SelectMany(x => x.ValidationErrors)
+                        .Select(x => x.PropertyName + ": " + x.ErrorMessage);
+
+                    // Gộp các lỗi thành một chuỗi
+                    var fullErrorMessage = string.Join("; ", errorMessages);
+
+                    // Log lỗi hoặc đưa lỗi này vào ModelState để hiển thị
+                    ModelState.AddModelError("", fullErrorMessage);
+                }
             }
 
             ViewBag.CategoryID = new SelectList(db.Categories, "CategoryID", "CategoryName", product.CategoryID);
