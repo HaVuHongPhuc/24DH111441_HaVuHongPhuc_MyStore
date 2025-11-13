@@ -37,7 +37,7 @@
                 @foreach (var item in Model.CartItems)
                 {
                     <tr>
-                        <td><img src="@item.ProductName" /></td>
+                        <td><img src="@item.ProductImage" /></td>
                         <td>@item.ProductName</td>
                         <td>@item.Quantity</td>
                         <td>@item.UnitPrice</td>
@@ -98,7 +98,7 @@
 
     <div class="form-group">
         <div class="col-md-offset-2 col-md-10">
-            <input type="submit" value="Đặt hàng" class="btn btn-default" onclick="updateShippingAddress()" />
+            <input type="submit" value="Đặt hàng" class="btn btn-success" onclick="updateShippingAddress()" />
         </div>
     </div>
 }

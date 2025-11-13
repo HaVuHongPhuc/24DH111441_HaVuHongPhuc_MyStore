@@ -9,6 +9,7 @@ using System.Web.Mvc;
 using MyStore.Models;
 using MyStore.Models.ViewModel;
 using PagedList;
+using PagedList.Mvc;
 
 namespace MyStore.Areas.Admin
 {

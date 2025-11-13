@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using PagedList.Mvc;
+using PagedList;
 
-namespace  MyStore.Models.ViewModel
+namespace MyStore.Models.ViewModel
 {
     public class Cart
     {

@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using PagedList.Mvc;
+using PagedList;
+
 
 namespace MyStore.Controllers
 {
@@ -23,7 +26,7 @@ namespace MyStore.Controllers
         {
             //Kiểm tra giỏ hàng trong session
             //nếu giỏ hàng rỗng hoặc không có sản phẩm thì chuyển hướng về trang chủ
-            var cart = Session["Cart"] as List<CartItem>;
+            var cart = Session["Cart"] as Cart;
             if (cart == null) 
             {
                 return RedirectToAction("Index", "Home");
@@ -41,8 +44,8 @@ namespace MyStore.Controllers
 
             var model = new CheckoutVM //Tạo dữ liệu hiển thị cho Checkout
             {
-                CartItems = cart, // Lấy danh sách sản phẩm trong giỏ hàng
-                TotalAmount = cart.Sum(item => item.TotalPrice), //Tổng giá trị của các mặt hàng trong giỏ
+                CartItems = cart.Items.ToList(), // Lấy danh sách sản phẩm trong giỏ hàng
+                TotalAmount = cart.Items.Sum(item => item.TotalPrice), //Tổng giá trị của các mặt hàng trong giỏ
                 OrderDate = DateTime.Now, //Mặc định lấy bằng thời điểm đặt hàng
                 ShippingAddress = customer.CustomerAddress, //Lấy địa chỉ mặc định từ bảng Customer
                 Username = customer.Username //Lấy tên đăng nhập từ bảng Customer
@@ -58,7 +61,7 @@ namespace MyStore.Controllers
         {
             if (ModelState.IsValid)
             {
-                var cart = Session["Cart"] as List<CartItem>;
+                var cart = Session["Cart"] as Cart;
                 //Nếu giỏ hàng rỗng sẽ điều hướng tới trang Home
                 if (cart == null) { return RedirectToAction("Index", "Home"); }
 
@@ -96,7 +99,7 @@ namespace MyStore.Controllers
                     PaymentMethod = model.PaymentMethod,
                     DeliveryMethod = model.ShippingMethod,
                     ShippingAddress = model.ShippingAddress,
-                    OrderDetails = cart.Select(item => new OrderDetail
+                    OrderDetails = cart.Items.Select(item => new OrderDetail
                     {
                         ProductID = item.ProductID,
                         Quantity = item.Quantity,
@@ -115,14 +118,49 @@ namespace MyStore.Controllers
             return View(model);
         }
 
-        public ActionResult OrderSuccess (int id)
+        public ActionResult OrderSuccess(int? id) 
         {
-            var order = db.Orders.Include("OrderDetails.Product").SingleOrDefault(o => o.OrderID == id);
+            if (id == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var order = db.Orders
+                          .Include("OrderDetails.Product")
+                          .SingleOrDefault(o => o.OrderID == id);
+
             if (order == null)
             {
                 return HttpNotFound();
             }
             return View(order);
+        }
+
+        [Authorize] 
+        public ActionResult OrderHistory()
+        {
+            // 1. Lấy username của người dùng đang đăng nhập
+            var tenDangNhap = User.Identity.Name;
+
+            // 2. Tìm CustomerID từ username
+            var customer = db.Customers.SingleOrDefault(c => c.Username == tenDangNhap);
+
+            // 3. Kiểm tra xem customer có tồn tại không
+            if (customer == null)
+            {
+                // Nếu không tìm thấy thông tin khách hàng, có thể đưa về trang chủ
+                return RedirectToAction("Index", "Home");
+            }
+
+            // 4. Lấy tất cả đơn hàng của khách hàng này
+            // Sắp xếp theo ngày mới nhất lên trên
+            var orders = db.Orders
+                           .Where(o => o.CustomerID == customer.CustomerID)
+                           .OrderByDescending(o => o.OrderDate)
+                           .ToList(); // Lấy danh sách
+
+            // 5. Gửi danh sách đơn hàng này tới View
+            return View(orders);
         }
     }
 }

@@ -7,6 +7,8 @@ using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using MyStore.Models;
+using PagedList.Mvc;
+using PagedList;
 
 namespace MyStore.Areas.Admin.Controllers
 {

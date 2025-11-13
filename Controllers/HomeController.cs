@@ -7,6 +7,8 @@ using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using PagedList;
+using PagedList.Mvc;
+
 
 namespace MyStore.Controllers
 {
@@ -32,7 +34,7 @@ namespace MyStore.Controllers
             int pageSize = 6; //Số sản phẩm mỗi trang
 
             //Láy top 10 sản phẩm bán chạy nhất
-            model.FeaturedProducts = db.Products
+            model.FeaturedProducts = products
                                         .OrderByDescending(p => p.OrderDetails.Count())
                                         .Take(10)
                                         .ToList();

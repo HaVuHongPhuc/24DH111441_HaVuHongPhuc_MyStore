@@ -1,8 +1,14 @@
 ﻿@model MyStore.Models.ViewModel.ProductSearchVM
-
+@using PagedList.Mvc
 @{
     ViewBag.Title = "Index";
 }
+<head>
+    <meta charset="utf-8" />
+    <link href="~/Content/PagedList.css" rel="stylesheet" />
+    <link href="~/Content/MyStyle.css" rel="stylesheet" />
+    @Scripts.Render("~/bundles/modernizr")
+</head>
 <style>
     img {
         height: 200px;
@@ -15,16 +21,16 @@
     <table class="table bg-info col-md-10">
         <tr>
             <th class="bg-success col-md-1">
+                Hình ảnh
+            </th>
+            <th class="bg-success col-md-1">
                 Tên sản phẩm
             </th>
-            <th class="bg-success col-md-2">
+            <th class="bg-success col-md-3">
                 Mô tả sản phẩm
             </th>
             <th class="bg-success col-md-1">
                 Đơn giá
-            </th>
-            <th class="bg-success col-md-3">
-                Hình ảnh
             </th>
             <th class="bg-success col-md-1">
                 Danh mục sản phẩm
@@ -49,10 +55,23 @@
         }
 
     </table>
+
+    //Hiển thị phân trang
+    <div class="pagination-container">
+        @Html.PagedListPager(Model.Products, page => Url.Action("Index", new
+        {
+            page,
+            searchTerm = Model.SearchTerm,
+            minPrice = Model.MinPrice,
+            maxPrice = Model.MaxPrice,
+            sortOrder = Model.SortOrder
+        }),
+        new PagedListRenderOptions { UlElementClasses = new[] { "pagination" } }) @* <-- THÊM CÁI NÀY *@
+    </div>
 }
 else
 {
-<p> Không tìm được trang phù hợp </p>
+    <p> Không tìm được trang phù hợp </p>
 }
 <p>
     @Html.ActionLink("Thêm mới", "Create", null, new { @class = "btn btn-primary" })

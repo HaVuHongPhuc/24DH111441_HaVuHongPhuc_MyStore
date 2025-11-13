@@ -6,6 +6,8 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
+using PagedList.Mvc;
+using PagedList;
 
 namespace MyStore.Controllers
 {
@@ -75,25 +77,44 @@ namespace MyStore.Controllers
             if (ModelState.IsValid)
             {
                 var user = db.Users.SingleOrDefault(u => u.Username == model.Username
-                                                   && u.Password == model.Password
-                                                   && u.UserRole == "customer");
+                                                      && u.Password == model.Password
+                                                      && u.UserRole == "customer");
                 if (user != null)
                 {
-                    // Lưu trạng thái đăng nhập vào session
-                    Session["Username"] = user.Username;
+                    // === CODE MỚI BẮT ĐẦU TỪ ĐÂY ===
+
+                    // 1. Lấy thông tin khách hàng từ username
+                    var customer = db.Customers.SingleOrDefault(c => c.Username == user.Username);
+
+                    // 2. Lưu thông tin vào Session
+                    Session["Username"] = user.Username; // Vẫn giữ để xác thực
                     Session["UserRole"] = user.UserRole;
 
-                    //lưu thông tin xác thực người dùng vào cookie
+                    if (customer != null)
+                    {
+                        // Lưu TÊN KHÁCH HÀNG để chào
+                        Session["CustomerName"] = customer.CustomerName;
+                    }
+                    else
+                    {
+                        // Trường hợp dự phòng nếu bảng Customer không có
+                        Session["CustomerName"] = user.Username;
+                    }
+
+                    //lưu thông tin xác thực người dùng vào cookie (vẫn dùng Username)
                     FormsAuthentication.SetAuthCookie(user.Username, false);
 
                     return RedirectToAction("Index", "Home");
                 }
-                else
-                {
-                    ModelState.AddModelError("", "Tên đăng nhập hoặc mật khẩu không đúng.");
-                }
             }
             return View(model);
+        }
+        // GET: Account/Logout
+        public ActionResult Logout()
+        {
+            Session.Clear(); // Xóa tất cả thông tin Session
+            FormsAuthentication.SignOut(); // Hủy cookie xác thực
+            return RedirectToAction("Index", "Home"); // Quay về trang chủ
         }
     }
 }

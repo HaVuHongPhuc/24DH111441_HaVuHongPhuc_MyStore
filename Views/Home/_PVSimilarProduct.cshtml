@@ -1,11 +1,11 @@
 ﻿@model MyStore.Models.ViewModel.Cart
 @*@model MyStore.Models.Product
-@model MyStore.Models.ViewModel.CartItem*@
+    @model MyStore.Models.ViewModel.CartItem*@
 
 @using PagedList.Mvc;
 @using PagedList;
 
-<link rel="stylesheet" type="text/css" href="~/Content/MyStyle/CustomerHome.css" />
+<link rel="stylesheet" href="~/Content/SanPham.css" />
 
 @if (Model.SimilarProducts != null && Model.SimilarProducts.Any())
 {
@@ -32,8 +32,8 @@
         </ul>
     </section>
 
-@*Hiển thị phân trang*@
-<div class="pagination-container">
-    @Html.PagedListPager(Model.SimilarProducts, page => Url.Action("Index", new { page }))
-</div>
+    @*Hiển thị phân trang*@
+    <div class="pagination-container">
+        @Html.PagedListPager(Model.SimilarProducts, page => Url.Action("Index", new { page }))
+    </div>
 }

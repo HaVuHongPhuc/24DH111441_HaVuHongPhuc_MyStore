@@ -2,6 +2,8 @@
 @using PagedList.Mvc;
 
 <link rel="stylesheet" href="~/Content/SanPham.css" />
+<link rel="stylesheet" href="~/Content/PagedList.css" />
+
 
 @*Hiển thị danh sách sản phẩm*@
 @if (Model.NewProducts != null && Model.NewProducts.Any())
@@ -13,7 +15,7 @@
             {
                 <li class="lproduct-item">
                     <div>
-                        <a href="@Url.Action("ProductDetail", "Home", new { id = product.ProductID })">
+                        <a href="@Url.Action("ProductDetails", "Home", new { id = product.ProductID })">
                             <img src="@Html.DisplayFor(modelItem => product.ProductImage)" />
                         </a>
                     </div>
@@ -27,4 +29,18 @@
             }
         </ul>
     </section>
+
+    //Hiển thị phân trang
+    <div class="pagination-container">
+        @Html.PagedListPager(Model.NewProducts, page => Url.Action("Index", new
+        {
+            page,
+            searchTerm = Model.SearchTerm
+        }))
+    </div>
 }
+else
+{
+    <p>Không tìm được sản phẩm phù hợp</p>
+}
+
